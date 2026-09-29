@@ -95,7 +95,6 @@ if uploaded_file and st.button("Convert to Video Lecture 🚀"):
             
             status_text.text(f"Step 3/5: Recording AI audio voiceover for page {index + 1}...")
             
-            # SAFE SYNC AUDIO RUN
             communicate = edge_tts.Communicate(simplified_script, selected_voice_id)
             asyncio.run(communicate.save(audio_track_path))
             
@@ -111,18 +110,17 @@ if uploaded_file and st.button("Convert to Video Lecture 🚀"):
             master_video_composition = concatenate_videoclips(video_slide_clips, method="compose")
             progress_bar.progress(85)
             
-            status_text.text("Step 5/5: Compiling final video (this will take 10 seconds)...")
+            status_text.text("Step 5/5: Compiling final video...")
             final_mp4_output = os.path.join(OUTPUT_DIR, "final_student_course.mp4")
             
-            # LOCKED SYSTEM PARAMETERS TO FORCE IMMEDIATE CONVERSION
+            # FIXED: Removed 'progress_bar' keyword argument completely to prevent crashes
             master_video_composition.write_videofile(
                 final_mp4_output, 
-                fps=8, # Lowered frame rate to make conversion 3x faster on cloud servers
+                fps=8, 
                 codec="libx264", 
                 audio_codec="aac", 
                 logger=None,
-                verbose=False,
-                progress_bar=False
+                verbose=False
             )
             
             progress_bar.progress(100)
