@@ -3,7 +3,6 @@ import os
 import pypdf
 import asyncio
 import edge_tts
-# Fixed import structure for compatibility with Streamlit's environment
 from moviepy.editor import ImageClip, AudioFileClip, concatenate_videoclips
 from PIL import Image, ImageDraw, ImageFont
 from google import genai
@@ -80,8 +79,14 @@ st.subheader("Turn Boring Teacher Notes & PPTs into Engaging Video Lessons")
 st.write("Designed for visual learners. Upload your college document slides to see them rewritten by Gemini and transformed into clean interactive video tracks.")
 
 uploaded_file = st.file_uploader("📂 Upload your professor's lecture notes (PDF only)", type=["pdf"])
-voice_option = st.selectbox("🗣️ Select Preferred AI Instructor Accent Tone:", ["en-IN-NeerjaNeural (Female - Natural Indian Accent)", "en-IN-PrabhatNeural (Male - Natural Indian Accent)"])
-selected_voice_id = voice_option.split(" ")
+
+# FIXED VOICE DICTIONARY MAPPING
+voice_dict = {
+    "🇮🇳 Female (Natural Indian Accent)": "en-IN-NeerjaNeural",
+    "🇮🇳 Male (Natural Indian Accent)": "en-IN-PrabhatNeural"
+}
+voice_choice = st.selectbox("🗣️ Select Preferred AI Instructor Accent Tone:", list(voice_dict.keys()))
+selected_voice_id = voice_dict[voice_choice]
 
 async def generate_voice_over(text_to_speak, output_audio_path, voice_model):
     communicate = edge_tts.Communicate(text_to_speak, voice_model)
