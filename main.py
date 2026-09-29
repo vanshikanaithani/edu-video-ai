@@ -1,30 +1,3 @@
-# 1. Create and enter project folder
-mkdir edu-video-ai
-cd edu-video-ai
-git init
-
-# 2. Create requirements.txt
-cat << 'EOF' > requirements.txt
-streamlit
-pypdf
-edge-tts
-moviepy
-google-genai
-EOF
-
-# 3. Create .gitignore
-cat << 'EOF' > .gitignore
-*.mp4
-*.mp3
-*.png
-__pycache__/
-uploaded_notes/
-generated_lessons/
-.env
-EOF
-
-# 4. Create main.py (Master Application Engine)
-cat << 'EOF' > main.py
 import streamlit as st
 import os
 import pypdf
@@ -33,11 +6,13 @@ import edge_tts
 from moviepy.editor import TextClip, AudioFileClip, concatenate_videoclips, CompositeVideoClip, ColorClip
 from google import genai
 
+# Setup folders for handling cloud file actions
 UPLOAD_DIR = "uploaded_notes"
 OUTPUT_DIR = "generated_lessons"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
+# Connect to Google Gemini
 try:
     client = genai.Client()
 except Exception:
@@ -129,9 +104,3 @@ if uploaded_file and st.button("Convert to Video Lecture Course 🚀"):
                 st.download_button(label="📥 Download Finished MP4 Course File", data=video_file, file_name="AI_Visual_Lecture.mp4", mime="video/mp4")
     except Exception as general_error:
         st.error(f"System Processing Interrupted: {general_error}")
-EOF
-
-# 5. Commit and Push to your GitHub Repo
-git add .
-git commit -m "Init: Complete EduVideo AI production app"
-git branch -M main
