@@ -3,7 +3,9 @@ import os
 import pypdf
 import asyncio
 import edge_tts
-from moviepy.editor import TextClip, AudioFileClip, concatenate_videoclips, CompositeVideoClip, ColorClip
+# Fixed import structure for compatibility with Streamlit's environment
+from moviepy.editor import ImageClip, AudioFileClip, concatenate_videoclips
+from PIL import Image, ImageDraw, ImageFont
 from google import genai
 
 # Setup folders for handling cloud file actions
@@ -39,6 +41,39 @@ def rewrite_text_with_gemini(raw_text):
     except Exception as e:
         return raw_text
 
+def draw_visual_slide(text_content, output_img_path, page_num):
+    width, height = 1920, 1080
+    bg_color = (15, 23, 42)        
+    accent_color = (99, 102, 241)  
+    text_color = (241, 245, 249)    
+    
+    img = Image.new('RGB', (width, height), color=bg_color)
+    draw = ImageDraw.Draw(img)
+    draw.rectangle([0, 0, 40, height], fill=accent_color)
+    
+    words = text_content.split()
+    lines = []
+    current_line = ""
+    for word in words:
+        if len(current_line + " " + word) <= 50:
+            current_line += " " + word
+        else:
+            lines.append(current_line.strip())
+            current_line = word
+    if current_line:
+        lines.append(current_line.strip())
+        
+    formatted_text = "\n".join(lines[:12])
+    
+    try:
+        font = ImageFont.load_default()
+    except:
+        font = None
+        
+    draw.text((120, 120), f"🎓 CHAPTER SEGMENT - SECTION {page_num}", fill=accent_color)
+    draw.text((120, 240), formatted_text, fill=text_color, spacing=24)
+    img.save(output_img_path)
+
 st.set_page_config(page_title="EduVideo AI - Indian Learner Platform", layout="centered")
 st.title("🎓 EduVideo AI")
 st.subheader("Turn Boring Teacher Notes & PPTs into Engaging Video Lessons")
@@ -73,17 +108,19 @@ if uploaded_file and st.button("Convert to Video Lecture Course 🚀"):
 
             status_text.text(f"Step 2/5: Gemini is teachifying slide section {index + 1} of {total_pages}...")
             simplified_script = rewrite_text_with_gemini(raw_text)
+            
             audio_track_path = os.path.join(OUTPUT_DIR, f"track_{index}.mp3")
+            slide_frame_path = os.path.join(OUTPUT_DIR, f"frame_{index}.png")
             
             status_text.text(f"Step 3/5: Encoding AI speech tracks for section {index + 1}...")
             asyncio.run(generate_voice_over(simplified_script, audio_track_path, selected_voice_id))
             
+            draw_visual_slide(simplified_script, slide_frame_path, index + 1)
+            
             audio_segment = AudioFileClip(audio_track_path)
             track_duration = audio_segment.duration
-            background_canvas = ColorClip(size=(1920, 1080), color=(15, 23, 42), duration=track_duration)
             
-            text_overlay = TextClip(simplified_script, fontsize=40, color='white', font='Arial', method='caption', size=(1600, 800)).set_position('center').set_duration(track_duration)
-            single_slide_clip = CompositeVideoClip([background_canvas, text_overlay]).set_audio(audio_segment)
+            single_slide_clip = ImageClip(slide_frame_path).set_duration(track_duration).set_audio(audio_segment)
             video_slide_clips.append(single_slide_clip)
             progress_bar.progress(10 + int((index + 1) / total_pages * 60))
 
