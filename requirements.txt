@@ -1,0 +1,5 @@
+streamlit
+pypdf
+edge-tts
+moviepy
+google-genai
