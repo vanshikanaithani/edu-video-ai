@@ -1,5 +1,5 @@
 streamlit
 pypdf
 edge-tts
-moviepy
+moviepy==1.0.3
 google-genai
